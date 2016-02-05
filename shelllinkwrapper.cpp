@@ -3,43 +3,53 @@
 #endif
 
 #include "shelllinkwrapper.h"
+#include <stdio.h>
 
-ShelllinkWrapper::ShelllinkWrapper()
-        : sl(NULL)
-        , pf(NULL)
-        , hm(NULL)
-        , pCommandLineFromMsiDescriptor(NULL)
+ShelllinkWrapper::ShelllinkWrapper(LPCWSTR linkfile = NULL)
+        : m_sl(NULL)
+        , m_pf(NULL)
+        , m_hm(NULL)
+        , m_CommandLineFromMsiDescriptor(NULL)
 {
-    CoInitialize(NULL);
-    this->hm = LoadLibraryW(L"advapi32.dll");
-    if (this->hm != NULL)
-        this->pCommandLineFromMsiDescriptor = (F_CommandLineFromMsiDescriptor)GetProcAddress(hm, "CommandLineFromMsiDescriptor");
-}
-
-ShelllinkWrapper::ShelllinkWrapper(LPCWSTR linkfile)
-{
-    ShelllinkWrapper();
-    Load(linkfile);
+    HRESULT ret = CoInitialize(NULL);
+    m_hm = LoadLibraryW(L"advapi32.dll");
+    if (m_hm != NULL)
+        m_CommandLineFromMsiDescriptor = (F_CommandLineFromMsiDescriptor)GetProcAddress(m_hm, "CommandLineFromMsiDescriptor");
+    if (linkfile)
+        Load(linkfile);
 }
 
 ShelllinkWrapper::~ShelllinkWrapper()
 {
-    if (this->pf)
-        this->pf->Release();
-    if (this->sl)
-        this->sl->Release();
-    if (this->hm)
-        FreeLibrary(this->hm);
+    Release();
+    if (m_hm)
+        FreeLibrary(m_hm);
     CoUninitialize();
 }
 
 BOOL ShelllinkWrapper::Load(LPCWSTR linkfile)
 {
-    HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**)&(this->sl));
-    this->sl->QueryInterface(IID_IPersistFile, (void**)&(this->pf));
-    this->pf->Load(linkfile, STGM_READ);
+    Release();
+    HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**)&m_sl);
+    m_sl->QueryInterface(IID_IPersistFile, (void**)&m_pf);
+    m_pf->Load(linkfile, STGM_READ);
 
     return TRUE;
+}
+
+BOOL ShelllinkWrapper::Save(LPCWSTR linkfile)
+{
+    m_pf->Save(linkfile, TRUE);
+
+    return TRUE;
+}
+
+VOID ShelllinkWrapper::Release()
+{
+    if (m_pf)
+        m_pf->Release();
+    if (m_sl)
+        m_sl->Release();
 }
 
 /* gets the target path directly or through MSI */
@@ -52,14 +62,14 @@ HRESULT ShelllinkWrapper::get_cmdline(LPWSTR szPath, DWORD pathSize, LPWSTR szAr
     szPath[0] = 0;
     szArgs[0] = 0;
 
-    hr = this->sl->GetPath( szPath, pathSize, NULL, SLGP_RAWPATH );
+    hr = m_sl->GetPath( szPath, pathSize, NULL, SLGP_RAWPATH );
     if (hr == S_OK && szPath[0])
     {
-        this->sl->GetArguments( szArgs, argsSize );
+        m_sl->GetArguments( szArgs, argsSize );
         return hr;
     }
 
-    hr = this->sl->QueryInterface( IID_IShellLinkDataList, (LPVOID*) &dl );
+    hr = m_sl->QueryInterface( IID_IShellLinkDataList, (LPVOID*) &dl );
     if (FAILED(hr))
         return hr;
 
@@ -70,12 +80,12 @@ HRESULT ShelllinkWrapper::get_cmdline(LPWSTR szPath, DWORD pathSize, LPWSTR szAr
         DWORD cmdSize;
 
         cmdSize=0;
-        hr = this->pCommandLineFromMsiDescriptor( dar->szwDarwinID, NULL, &cmdSize );
+        hr = m_CommandLineFromMsiDescriptor( dar->szwDarwinID, NULL, &cmdSize );
         if (hr == ERROR_SUCCESS)
         {
             cmdSize++;
             szCmdline = (WCHAR*)HeapAlloc( GetProcessHeap(), 0, cmdSize*sizeof(WCHAR) );
-            hr = this->pCommandLineFromMsiDescriptor( dar->szwDarwinID, szCmdline, &cmdSize );
+            hr = m_CommandLineFromMsiDescriptor( dar->szwDarwinID, szCmdline, &cmdSize );
             if (hr == ERROR_SUCCESS)
             {
                 WCHAR *s, *d;
@@ -151,4 +161,9 @@ HRESULT ShelllinkWrapper::get_cmdline(LPWSTR szPath, DWORD pathSize, LPWSTR szAr
 
     dl->Release();
     return hr;
+}
+
+BOOL ShelllinkWrapper::GetWorkDir(LPWSTR szPath, DWORD pathSize)
+{
+    return SUCCEEDED(m_sl->GetWorkingDirectory(szPath, pathSize));
 }

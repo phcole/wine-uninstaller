@@ -4,7 +4,7 @@ EXE_NAME="app-uninstaller.exe"
 all: uninstaller
 	
 uninstaller: shelllinkwrapper.cpp main.cpp
-	$(EXE_COMPILER) $? -lole32 -luuid -lstdc++ -o$(EXE_NAME)
+	$(EXE_COMPILER) $? -m32 -mwindows -lole32 -luuid -lstdc++ -lshlwapi -o$(EXE_NAME)
 
 .PHONY: clean
 

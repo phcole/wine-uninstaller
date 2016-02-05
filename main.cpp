@@ -8,7 +8,7 @@
 #include <shlwapi.h>
 #include "shelllinkwrapper.h"
 
-BOOL RunApp(LPCWSTR cmd, BOOL wait)
+BOOL RunApp(LPCWSTR cmd, BOOL wait = FALSE)
 {
     STARTUPINFO si = {0};
     PROCESS_INFORMATION pi = {0};
@@ -41,13 +41,23 @@ int WINAPI WinMain(
 
     if (nArgs > 1)
     {
-        //get_cmdline(szArglist[1], cmd, MAX_PATH, arg, INFOTIPSIZE);
-        wprintf(L"%s - %s\n", cmd, arg);
+        wprintf(L"%s %d\n", szArglist[1], PathFileExists(szArglist[1]));
+        ShelllinkWrapper wrapper(szArglist[1]);
+        HRESULT ret = wrapper.get_cmdline(cmd, MAX_PATH, arg, INFOTIPSIZE);
+        if (S_OK == ret)
+            wprintf(L"%s - %s\n", cmd, arg);
+        else
+        {
+            wprintf(L"ERROR: %d\n", GetLastError());
+            RunApp(L"uninstaller.exe", FALSE);
+        }
+        wrapper.GetWorkDir(cmd, MAX_PATH);
+        wprintf(L"%s\n", cmd);
+        return 0;
     }
     else
     {
         wprintf(L"no param given.\n");
     }
-    RunApp(L"uninstaller.exe", FALSE);
-    return 0;
+    return 1;
 }

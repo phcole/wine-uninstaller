@@ -1,5 +1,8 @@
+#ifndef _F_SHELLLINKWRAPPER_H_
+#define _F_SHELLLINKWRAPPER_H_
+
 #include <windows.h>
-#include <objbase.h> 
+#include <objbase.h>
 #include <shlobj.h>
 #include <shobjidl.h>
 #include <objidl.h>
@@ -25,3 +28,5 @@ public:
     HRESULT get_cmdline(LPWSTR szPath, DWORD pathSize, LPWSTR szArgs, DWORD argsSize);
     BOOL GetWorkDir(LPWSTR szPath, DWORD pathSize);
 };
+
+#endif//_F_SHELLLINKWRAPPER_H_

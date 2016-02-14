@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <shlwapi.h>
 #include "shelllinkwrapper.h"
+#include "uninstalllist.h"
 
 BOOL RunApp(LPCWSTR cmd, BOOL wait = FALSE)
 {
@@ -27,32 +28,39 @@ BOOL RunApp(LPCWSTR cmd, BOOL wait = FALSE)
     return TRUE;
 }
 
-int WINAPI WinMain(
+int WINAPI wWinMain(
         HINSTANCE hInstance,
         HINSTANCE hPrevInstance,
-        LPSTR lpCmdLine,
+        LPWSTR lpCmdLine,
         int nCmdShow)
 {
     WCHAR cmd[MAX_PATH], arg[INFOTIPSIZE];
+    WCHAR** list;
+    DWORD size;
     LPWSTR *szArglist;
     int nArgs;
     HMODULE hm;
+
     szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+    printf("%s\n", GetCommandLineA());
+
+    UninstallList unist;
 
     if (nArgs > 1)
     {
-        wprintf(L"%s %d\n", szArglist[1], PathFileExists(szArglist[1]));
-        ShelllinkWrapper wrapper(szArglist[1]);
-        HRESULT ret = wrapper.get_cmdline(cmd, MAX_PATH, arg, INFOTIPSIZE);
+        wprintf(L"Args: %s %d\n", szArglist[1], PathFileExists(szArglist[1]));
+        ShelllinkWrapper shllnk(szArglist[1]);
+        shllnk.GetWorkDir(cmd, MAX_PATH);
+        wprintf(L"Workdir: %s\n", cmd);
+        unist.ScanForMatch(cmd);
+        HRESULT ret = shllnk.get_cmdline(cmd, MAX_PATH, arg, INFOTIPSIZE);
         if (S_OK == ret)
-            wprintf(L"%s - %s\n", cmd, arg);
+            wprintf(L"cmd: %s - args: %s\n", cmd, arg);
         else
         {
             wprintf(L"ERROR: %d\n", GetLastError());
             RunApp(L"uninstaller.exe", FALSE);
         }
-        wrapper.GetWorkDir(cmd, MAX_PATH);
-        wprintf(L"%s\n", cmd);
         return 0;
     }
     else

@@ -21,4 +21,4 @@ linkfile=${linkfile%%\" *}
 echo "cxoffice bottle: \"$Bottle\""
 echo "shell link file: \"$linkfile\""
 
-/opt/cxoffice/bin/wine --bottle="$Bottle"  --wait-children $UNINSTALLER_EXE -- "$linkfile"
+/opt/cxoffice/bin/wine --bottle="$Bottle" --verbose --wait-children -- $UNINSTALLER_EXE "$linkfile"

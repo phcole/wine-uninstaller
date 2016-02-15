@@ -15,7 +15,7 @@ clean:
 	rm -rfv $(EXE_NAME)
 
 install:
-	install -Dm644 $(SHELL_NAME) /opt/deepinwine/tools/$(SHELL_NAME)
+	install -Dm755 $(SHELL_NAME) /opt/deepinwine/tools/$(SHELL_NAME)
 	install -Dm644 $(EXE_NAME) /opt/deepinwine/tools/$(EXE_NAME)
 
 uninstall:

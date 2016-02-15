@@ -3,10 +3,11 @@ SHELL_NAME=uninstall.sh
 EXE_NAME=app-uninstaller.exe
 EXTRA_FLAGS=-m32
 
-all: uninstaller
+all: app-uninstaller
 	
-uninstaller: shelllinkwrapper.cpp registrywrapper.cpp uninstalllist.cpp main.cpp
-	$(EXE_COMPILER) $? $(EXTRA_FLAGS) -mwindows -municode -lole32 -luuid -lstdc++ -lshlwapi -o$(EXE_NAME)
+app-uninstaller: shelllinkwrapper.cpp registrywrapper.cpp uninstalllist.cpp main.cpp
+	$(EXE_COMPILER) $? $(EXTRA_FLAGS) -static -mwindows -municode -lole32 -luuid -lstdc++ -lshlwapi -o$(EXE_NAME)
+	strip -s $(EXE_NAME)
 
 .PHONY: clean install uninstall
 

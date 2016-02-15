@@ -79,51 +79,58 @@ VOID UninstallList::FreeAppList()
 
 WCHAR* UninstallList::ScanForMatch(LPCWSTR match)
 {
-	BOOL found;
+	BOOL found = FALSE;
 	WCHAR *ret_val = NULL, *buffer;
-	DWORD value_max_length, buffer_length = 0, length;
+	DWORD value_max_length, buffer_real_length = 0, length, match_length = wcslen(match);
 	RegistryWrapper subkey;
 	for (DWORD i = 0; i < m_size; ++i)
 	{
 		found = FALSE;
 		subkey.Open(m_reg.GetHandle(), m_list[i], FALSE, TRUE);
 		subkey.Info(NULL, NULL, NULL, NULL, &value_max_length);
-		if (value_max_length > buffer_length)
+		if (value_max_length > buffer_real_length)
 		{
-			if (buffer_length)
+			if (buffer_real_length)
 				delete [] buffer;
-			buffer_length = value_max_length;
-			buffer = new WCHAR[buffer_length];
+			buffer_real_length = value_max_length;
+			buffer = new WCHAR[buffer_real_length];
 		}
 		wprintf(L"----%s----\n", m_list[i]);
-		length = buffer_length;
+		length = buffer_real_length;
 		if (subkey.Query(L"DisplayName", NULL, (LPBYTE)buffer, &length))
 		{
 			wprintf(L"DisplayName: %s\n", buffer);
 		}
-		length = buffer_length;
+		length = buffer_real_length;
 		if (subkey.Query(L"InstallLocation", NULL, (LPBYTE)buffer, &length))
 		{
 			wprintf(L"InstallLocation: %s\n", buffer);
 			if (length > 2)
 			{
-				if (0 == _wcsnicmp(buffer, match, MIN(wcslen(buffer), wcslen(match))))
+				if (0 == _wcsnicmp(buffer, match, MIN(wcslen(buffer), match_length)))
 					found = TRUE;
 			}
 		}
-		length = buffer_length;
+		length = buffer_real_length;
 		if (subkey.Query(L"UninstallString", NULL, (LPBYTE)buffer, &length))
 		{
-			wprintf(L"UninstallString: %s[%d - %d]\n", buffer, length, wcslen(buffer));
+			wprintf(L"UninstallString: %s\n", buffer, length, wcslen(buffer));
 			if (FALSE == found && 2 < length && 0 != wcsnicmp(buffer, L"MsiExec.exe", 11))
 			{
 				WCHAR *tmp = StrDumpW(buffer);
-				PathRemoveFileSpec(buffer);
-				if (0 == _wcsnicmp(buffer, match, MIN(wcslen(buffer), wcslen(match))))
+				PathRemoveArgs(tmp);
+				PathUnquoteSpaces(tmp);
+				PathRemoveFileSpec(tmp);
+				DWORD tmp_length = wcslen(tmp);
+				if (0 < tmp_length && 0 == _wcsnicmp(tmp, match, MIN(tmp_length, match_length)))
 					found = TRUE;
+				delete [] tmp;
 			}
 			if (found)
+			{
 				ret_val = StrDumpW(buffer);
+				break;
+			}
 		}
 	}
 	if (buffer)

@@ -14,7 +14,6 @@ class RegistryWrapper
 {
 private:
 	HKEY m_key;
-
 	DWORD m_enum_index;
 
 public:

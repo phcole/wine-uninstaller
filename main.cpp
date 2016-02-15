@@ -34,8 +34,8 @@ int WINAPI wWinMain(
         LPWSTR lpCmdLine,
         int nCmdShow)
 {
-    WCHAR cmd[MAX_PATH], arg[INFOTIPSIZE], *unins_cmd = NULL;
-    LPWSTR *szArglist;
+    WCHAR cmd[MAX_PATH], arg[INFOTIPSIZE];
+    LPWSTR *szArglist, unins_cmd = NULL;
     int nArgs;
 
     szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
@@ -65,7 +65,7 @@ int WINAPI wWinMain(
     if (unins_cmd)
     {
         wprintf(L"FOUND: %s\n", unins_cmd);
-        //RunApp(unins_cmd, TRUE);
+        RunApp(unins_cmd, TRUE);
         delete [] unins_cmd;
     }
     else

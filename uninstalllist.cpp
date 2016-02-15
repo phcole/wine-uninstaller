@@ -115,7 +115,7 @@ WCHAR* UninstallList::ScanForMatch(LPCWSTR match)
 		if (subkey.Query(L"UninstallString", NULL, (LPBYTE)buffer, &length))
 		{
 			wprintf(L"UninstallString: %s\n", buffer, length, wcslen(buffer));
-			if (FALSE == found && 2 < length && 0 != wcsnicmp(buffer, L"MsiExec.exe", 11))
+			if (FALSE == found && 2 < length && 0 != _wcsnicmp(buffer, L"MsiExec.exe", 11))
 			{
 				WCHAR *tmp = StrDumpW(buffer);
 				PathRemoveArgs(tmp);

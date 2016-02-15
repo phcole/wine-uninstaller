@@ -53,7 +53,7 @@ VOID ShelllinkWrapper::Release()
 }
 
 /* gets the target path directly or through MSI */
-HRESULT ShelllinkWrapper::get_cmdline(LPWSTR szPath, DWORD pathSize, LPWSTR szArgs, DWORD argsSize)
+BOOL ShelllinkWrapper::GetCmd(LPWSTR szPath, DWORD pathSize, LPWSTR szArgs, DWORD argsSize)
 {
     IShellLinkDataList *dl = NULL;
     EXP_DARWIN_LINK *dar = NULL;
@@ -65,19 +65,21 @@ HRESULT ShelllinkWrapper::get_cmdline(LPWSTR szPath, DWORD pathSize, LPWSTR szAr
     hr = m_sl->GetPath( szPath, pathSize, NULL, SLGP_RAWPATH );
     if (hr == S_OK && szPath[0])
     {
-        m_sl->GetArguments( szArgs, argsSize );
-        return hr;
+        m_sl->GetArguments(szArgs, argsSize);
+        return TRUE;
     }
 
     hr = m_sl->QueryInterface( IID_IShellLinkDataList, (LPVOID*) &dl );
     if (FAILED(hr))
-        return hr;
+        return FALSE;
 
     hr = dl->CopyDataBlock( EXP_DARWIN_ID_SIG, (LPVOID*) &dar );
     if (SUCCEEDED(hr))
     {
         WCHAR* szCmdline;
         DWORD cmdSize;
+
+        wprintf(L"MSI - %s\n", dar->szwDarwinID);
 
         cmdSize=0;
         hr = m_CommandLineFromMsiDescriptor( dar->szwDarwinID, NULL, &cmdSize );
@@ -158,9 +160,8 @@ HRESULT ShelllinkWrapper::get_cmdline(LPWSTR szPath, DWORD pathSize, LPWSTR szAr
         }
         LocalFree( dar );
     }
-
     dl->Release();
-    return hr;
+    return SUCCEEDED(hr);
 }
 
 BOOL ShelllinkWrapper::GetWorkDir(LPWSTR szPath, DWORD pathSize)

@@ -1,5 +1,10 @@
 #include "uninstalllist.h"
 #include <stdio.h>
+#include <shlwapi.h>
+
+#define REG_UNINSTALL_ROOT_KEY L"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 char* StrDumpA(LPCSTR str, DWORD length = 0)
 {
@@ -7,7 +12,7 @@ char* StrDumpA(LPCSTR str, DWORD length = 0)
 	if (str == NULL || str[0] == 0)
 		return NULL;
 	if ( ! length)
-		length = strlen(str);
+		length = strlen(str) + 1;
 	if (0 != str[length])
 		++length;
 	ret = new char[length];
@@ -21,7 +26,7 @@ WCHAR* StrDumpW(LPCWSTR str, DWORD length = 0)
 	if (str == NULL || str[0] == 0)
 		return NULL;
 	if ( ! length)
-		length = wcslen(str);
+		length = wcslen(str) + 1;
 	if (0 != str[length])
 		++length;
 	ret = new WCHAR[length];
@@ -44,7 +49,7 @@ VOID UninstallList::GetAppList()
 	WCHAR* buffer;
 	DWORD i = 0, max_length, length;
 	
-	m_reg.Open(HKLM, L"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall", TRUE, FALSE);
+	m_reg.Open(HKLM, REG_UNINSTALL_ROOT_KEY, TRUE, FALSE);
 	m_reg.Info(&m_size, &max_length, NULL, NULL, NULL);
 	if (0 == m_size)
 		return;
@@ -74,13 +79,15 @@ VOID UninstallList::FreeAppList()
 
 WCHAR* UninstallList::ScanForMatch(LPCWSTR match)
 {
-	WCHAR* ret_val = NULL,* buffer;
-	DWORD count, value_max_length, buffer_length = 0, length;
+	BOOL found;
+	WCHAR *ret_val = NULL, *buffer;
+	DWORD value_max_length, buffer_length = 0, length;
 	RegistryWrapper subkey;
 	for (DWORD i = 0; i < m_size; ++i)
 	{
+		found = FALSE;
 		subkey.Open(m_reg.GetHandle(), m_list[i], FALSE, TRUE);
-		subkey.Info(NULL, NULL, &count, NULL, &value_max_length);
+		subkey.Info(NULL, NULL, NULL, NULL, &value_max_length);
 		if (value_max_length > buffer_length)
 		{
 			if (buffer_length)
@@ -92,17 +99,31 @@ WCHAR* UninstallList::ScanForMatch(LPCWSTR match)
 		length = buffer_length;
 		if (subkey.Query(L"DisplayName", NULL, (LPBYTE)buffer, &length))
 		{
-			wprintf(L"DisplayName: %s[%d - %d]\n", buffer, length, wcslen(buffer));
+			wprintf(L"DisplayName: %s\n", buffer);
 		}
 		length = buffer_length;
 		if (subkey.Query(L"InstallLocation", NULL, (LPBYTE)buffer, &length))
 		{
-			wprintf(L"InstallLocation: %s[%d - %d]\n", buffer, length, wcslen(buffer));
+			wprintf(L"InstallLocation: %s\n", buffer);
+			if (length > 2)
+			{
+				if (0 == _wcsnicmp(buffer, match, MIN(wcslen(buffer), wcslen(match))))
+					found = TRUE;
+			}
 		}
 		length = buffer_length;
 		if (subkey.Query(L"UninstallString", NULL, (LPBYTE)buffer, &length))
 		{
 			wprintf(L"UninstallString: %s[%d - %d]\n", buffer, length, wcslen(buffer));
+			if (FALSE == found && 2 < length && 0 != wcsnicmp(buffer, L"MsiExec.exe", 11))
+			{
+				WCHAR *tmp = StrDumpW(buffer);
+				PathRemoveFileSpec(buffer);
+				if (0 == _wcsnicmp(buffer, match, MIN(wcslen(buffer), wcslen(match))))
+					found = TRUE;
+			}
+			if (found)
+				ret_val = StrDumpW(buffer);
 		}
 	}
 	if (buffer)

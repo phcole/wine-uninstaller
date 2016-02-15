@@ -25,7 +25,7 @@ public:
     BOOL Load(LPCWSTR linkfile);
     BOOL Save(LPCWSTR linkfile);
     VOID Release();
-    HRESULT get_cmdline(LPWSTR szPath, DWORD pathSize, LPWSTR szArgs, DWORD argsSize);
+    BOOL GetCmd(LPWSTR szPath, DWORD pathSize, LPWSTR szArgs, DWORD argsSize);
     BOOL GetWorkDir(LPWSTR szPath, DWORD pathSize);
 };
 

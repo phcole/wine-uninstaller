@@ -34,38 +34,44 @@ int WINAPI wWinMain(
         LPWSTR lpCmdLine,
         int nCmdShow)
 {
-    WCHAR cmd[MAX_PATH], arg[INFOTIPSIZE];
-    WCHAR** list;
-    DWORD size;
+    WCHAR cmd[MAX_PATH], arg[INFOTIPSIZE], *unins_cmd = NULL;
     LPWSTR *szArglist;
     int nArgs;
-    HMODULE hm;
 
     szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
     printf("%s\n", GetCommandLineA());
 
     UninstallList unist;
 
-    if (nArgs > 1)
+    if (nArgs <= 1)
     {
-        wprintf(L"Args: %s %d\n", szArglist[1], PathFileExists(szArglist[1]));
-        ShelllinkWrapper shllnk(szArglist[1]);
-        shllnk.GetWorkDir(cmd, MAX_PATH);
+        wprintf(L"no param given.\n");
+        return 1;
+    }
+    wprintf(L"Args: %s %d\n", szArglist[1], PathFileExists(szArglist[1]));
+    ShelllinkWrapper shllnk(szArglist[1]);
+
+    if (NULL == unins_cmd && shllnk.GetWorkDir(cmd, MAX_PATH))
+    {
         wprintf(L"Workdir: %s\n", cmd);
-        unist.ScanForMatch(cmd);
-        HRESULT ret = shllnk.get_cmdline(cmd, MAX_PATH, arg, INFOTIPSIZE);
-        if (S_OK == ret)
-            wprintf(L"cmd: %s - args: %s\n", cmd, arg);
-        else
-        {
-            wprintf(L"ERROR: %d\n", GetLastError());
-            RunApp(L"uninstaller.exe", FALSE);
-        }
-        return 0;
+        unins_cmd = unist.ScanForMatch(cmd);
+    }
+    if (NULL == unins_cmd && shllnk.GetCmd(cmd, MAX_PATH, arg, INFOTIPSIZE))
+    {
+        wprintf(L"cmd: %s\n", cmd);
+        if (PathRemoveFileSpec(cmd))
+            unins_cmd = unist.ScanForMatch(cmd);
+    }
+    if (unins_cmd)
+    {
+        wprintf(L"FOUND: %s\n", unins_cmd);
+        //RunApp(unins_cmd, TRUE);
+        delete [] unins_cmd;
     }
     else
     {
-        wprintf(L"no param given.\n");
+        wprintf(L"ERROR: %d\n", GetLastError());
+        RunApp(L"uninstaller.exe", TRUE);
     }
-    return 1;
+    return 0;
 }

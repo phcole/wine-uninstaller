@@ -5,7 +5,7 @@ BASE_DIR=$(cd `dirname $0`; pwd)
 
 detect_cxoffice()
 {
-	local tmp=$(grep "X-Created-By" $Desktop_File | grep '=cxoffice-')
+	local tmp=$(grep "X-Created-By=" "$DESKTOP_FILE" | grep '=cxoffice-')
 	if [ ! -z "$tmp" ]; then
 		return 0
 	else
@@ -15,19 +15,20 @@ detect_cxoffice()
 
 proceed_cxoffice()
 {
-	local tmp=${1#Exec=\"}
+	local tmp=$(grep 'Exec=' "$DESKTOP_FILE")
+	tmp=${tmp#Exec=\"}
 	tmp=${tmp%\" %u}
 	if [ ! -f "$tmp" ]; then
 		echo 'CrossOver link missing.'
 		return
 	fi
 	tmp=$(cat $tmp | grep 'exec ')
-	Bottle=${tmp#*--bottle \"}
+	local Bottle=${tmp#*--bottle \"}
 	Bottle=${Bottle%%\" *}
-	linkfile=${tmp#*--start \"}
-	linkfile=${linkfile%%\" *}
+	local link_file=${tmp#*--start \"}
+	link_file=${link_file%%\" *}
 
-	tmp=${linkfile/C:/"$HOME/.cxoffice/$Bottle/drive_c"}
+	tmp=${link_file/C:/"$HOME/.cxoffice/$Bottle/drive_c"}
 	if [ ! -f "$tmp" ]; then
 		echo "link file missing."
 		return
@@ -42,43 +43,68 @@ proceed_cxoffice()
 	echo "$tmp"
 
 	echo "cxoffice bottle: \"$Bottle\""
-	echo "shell link file: \"$linkfile\""
+	echo "shell link file: \"$link_file\""
 
-	/opt/cxoffice/bin/wine --bottle="$Bottle" --verbose --wait-children -- "$BASE_DIR/$UNINSTALLER_EXE" "$linkfile"
+	/opt/cxoffice/bin/wine --bottle="$Bottle" --verbose --wait-children -- "$BASE_DIR/$UNINSTALLER_EXE" "$link_file"
 }
 
 detect_wine()
 {
-	return 1
+	local tmp=$(grep 'Exec=' "$DESKTOP_FILE" | grep '=env WINEPREFIX="')
+	if [ ! -z "$tmp" ]; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 proceed_wine()
 {
-	return
+	local tmp=$(grep 'Exec=' "$DESKTOP_FILE")
+	local prefix=${tmp#Exec=env WINEPREFIX=\"}
+	prefix=${prefix%%\" *}
+	echo $prefix
+	local wine_cmd=${tmp#Exec=env WINEPREFIX=\"*\" }
+	wine_cmd=${wine_cmd%% *}
+	echo $wine_cmd
+	local link_file=${tmp#*/dosdevices/}
+	link_file=$(echo -e $link_file)
+	link_file=${link_file//\\ / }
+	echo $link_file
+
+	if [ ! -d "$prefix" ]; then
+		echo "invalid wine prefix."
+		return
+	fi
+
+	echo "Prefix:    $prefix"
+	echo "wine cmd:  $wine_cmd"
+	echo "link file: $link_file"
+
+	env WINEPREFIX="$prefix" $wine_cmd "$BASE_DIR/$UNINSTALLER_EXE" "$link_file"
 }
 
-Desktop_File=$1
-if [ -z $Desktop_File ]; then
+DESKTOP_FILE=$1
+if [ -z "$DESKTOP_FILE" ]; then
 	echo "no desktop given."
 	exit 1
 fi
 
-if [ ! -f $Desktop_File ]; then
+if [ ! -f "$DESKTOP_FILE" ]; then
 	echo "desktop file do not exists."
 	exit 1
 fi
 
-echo "$Desktop_File"
+echo "$DESKTOP_FILE"
 
-Exec=$(cat "$Desktop_File" | grep 'Exec=')
-detect_cxoffice "$Exec"
+detect_cxoffice
 if [ $? -eq 0 ]; then
-	proceed_cxoffice "$Exec"
+	proceed_cxoffice
 	exit 0
 fi
 detect_wine
 if [ $? -eq 0 ]; then
-	proceed_wine "$Exec"
+	proceed_wine
 	exit 0
 fi
 exit 1

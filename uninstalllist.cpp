@@ -49,8 +49,10 @@ VOID UninstallList::GetAppList()
 	WCHAR* buffer;
 	DWORD i = 0, max_length, length;
 	
-	m_reg.Open(HKLM, REG_UNINSTALL_ROOT_KEY, TRUE, FALSE);
-	m_reg.Info(&m_size, &max_length, NULL, NULL, NULL);
+	if ( ! m_reg.Open(HKLM, REG_UNINSTALL_ROOT_KEY, TRUE, FALSE))
+		return;
+	if ( ! m_reg.Info(&m_size, &max_length, NULL, NULL, NULL))
+		return;
 	if (0 == m_size)
 		return;
 	m_list = new WCHAR*[m_size];
@@ -59,11 +61,13 @@ VOID UninstallList::GetAppList()
 	length = max_length;
 	while (m_reg.EnumKey(buffer, &length))
 	{
-		m_list[i] = StrDumpW(buffer, length);
+		m_list[i] = StrDumpW(buffer);
+		wprintf(L"[%d]%s\n", length, m_list[i]);
 		++i;
 		length = max_length;
 	}
 	delete [] buffer;
+	wprintf(L"==load list count:%d\n", m_size);
 }
 
 VOID UninstallList::FreeAppList()
@@ -85,9 +89,17 @@ WCHAR* UninstallList::ScanForMatch(LPCWSTR match)
 	RegistryWrapper subkey;
 	for (DWORD i = 0; i < m_size; ++i)
 	{
-		found = FALSE;
-		subkey.Open(m_reg.GetHandle(), m_list[i], FALSE, TRUE);
-		subkey.Info(NULL, NULL, NULL, NULL, &value_max_length);
+		if ( ! subkey.Open(m_reg.GetHandle(), m_list[i], FALSE, TRUE))
+		{
+			wprintf(L"open error [%s]%d\n", m_list[i], GetLastError());
+			continue;
+		}
+		if ( ! subkey.Info(NULL, NULL, NULL, NULL, &value_max_length))
+		{
+			wprintf(L"Info error [%s]%d\n", m_list[i], GetLastError());
+			continue;
+		}
+		wprintf(L"value_max_length %d\n", value_max_length);
 		if (value_max_length > buffer_real_length)
 		{
 			if (buffer_real_length)

@@ -39,7 +39,8 @@ int WINAPI wWinMain(
     int nArgs;
 
     szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
-    printf("%s\n", GetCommandLineA());
+    printf("CMD ANSI:    %s\n", GetCommandLineA());
+    wprintf(L"CMD UNICODE: %s\n", GetCommandLineW());
 
     UninstallList unist;
 

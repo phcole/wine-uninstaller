@@ -41,8 +41,8 @@ HKEY RegistryWrapper::GetHandle()
 BOOL RegistryWrapper::Info(LPDWORD subkey_count, LPDWORD subkey_max_length, LPDWORD value_count, LPDWORD value_name_max_length,
 		LPDWORD value_max_length)
 {
-	RegQueryInfoKey(m_key, NULL, NULL, NULL, subkey_count, subkey_max_length, NULL, value_count, value_name_max_length, 
-			value_max_length, NULL, NULL);
+	return (ERROR_SUCCESS == RegQueryInfoKey(m_key, NULL, NULL, NULL, subkey_count, subkey_max_length, NULL, value_count,
+			value_name_max_length,value_max_length, NULL, NULL));
 }
 
 DWORD RegistryWrapper::Query(LPCTSTR name, LPDWORD type, LPBYTE value, LPDWORD length)

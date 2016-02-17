@@ -13,10 +13,11 @@ char* StrDumpA(LPCSTR str, DWORD length = 0)
 		return NULL;
 	if ( ! length)
 		length = strlen(str) + 1;
-	if (0 != str[length])
+	if (0 != str[length - 1])
 		++length;
 	ret = new char[length];
 	memcpy(ret, str, length);
+	ret[length - 1] = 0;
 	return ret;
 }
 
@@ -27,10 +28,11 @@ WCHAR* StrDumpW(LPCWSTR str, DWORD length = 0)
 		return NULL;
 	if ( ! length)
 		length = wcslen(str) + 1;
-	if (0 != str[length])
+	if (0 != str[length - 1])
 		++length;
 	ret = new WCHAR[length];
 	memcpy(ret, str, length * sizeof(WCHAR));
+	ret[length - 1] = 0;
 	return ret;
 }
 
@@ -62,12 +64,10 @@ VOID UninstallList::GetAppList()
 	while (m_reg.EnumKey(buffer, &length))
 	{
 		m_list[i] = StrDumpW(buffer);
-		wprintf(L"[%d]%s\n", length, m_list[i]);
 		++i;
 		length = max_length;
 	}
 	delete [] buffer;
-	wprintf(L"==load list count:%d\n", m_size);
 }
 
 VOID UninstallList::FreeAppList()
@@ -152,7 +152,7 @@ WCHAR* UninstallList::MatchUninstallerByPath(WCHAR** match, DWORD count)
 					for (DWORD i = 0; i < count; ++i)
 					{
 						wprintf(L"compare %s - %s\n", tmp, match[i]);
-						if (0 == _wcsnicmp(tmp, match[i], MIN(wcslen(buffer), wcslen(match[i]))))
+						if (0 == _wcsnicmp(tmp, match[i], MIN(wcslen(tmp), wcslen(match[i]))))
 						{
 							found = TRUE;
 							break;

@@ -64,7 +64,8 @@ int WINAPI wWinMain(
         scan_path[scan_path_count++] = StrDumpW(cmd, 0);
         wprintf(L"Get path: %s\n", cmd);
     }
-    unins_cmd = unist.MatchUninstallerByPath(scan_path, scan_path_count);
+    if (scan_path_count > 0)
+        unins_cmd = unist.MatchUninstallerByPath(scan_path, scan_path_count);
     if (unins_cmd)
     {
         wprintf(L"FOUND: %s\n", unins_cmd);

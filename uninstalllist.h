@@ -4,8 +4,8 @@
 #include <windows.h>
 #include "registrywrapper.h"
 
-char* StrDumpA(LPCSTR* str, DWORD length);
-WCHAR* StrDumpW(LPCWSTR* str, DWORD length);
+char* StrDumpA(LPCSTR str, DWORD length);
+WCHAR* StrDumpW(LPCWSTR str, DWORD length);
 
 class UninstallList
 {

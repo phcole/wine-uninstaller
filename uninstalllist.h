@@ -21,7 +21,7 @@ public:
 	UninstallList();
 	~UninstallList();
 
-	WCHAR* ScanForMatch(LPCWSTR match);
+	WCHAR* MatchUninstallerByPath(WCHAR** match, DWORD count);
 };
 
 #endif//_F_SHELLLINKWRAPPER_H_

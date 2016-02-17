@@ -81,11 +81,11 @@ VOID UninstallList::FreeAppList()
 	m_size = 0;
 }
 
-WCHAR* UninstallList::ScanForMatch(LPCWSTR match)
+WCHAR* UninstallList::MatchUninstallerByPath(WCHAR** match, DWORD count)
 {
 	BOOL found = FALSE;
 	WCHAR *ret_val = NULL, *buffer;
-	DWORD value_max_length, buffer_real_length = 0, length, match_length = wcslen(match);
+	DWORD value_max_length, buffer_real_length = 0, length;
 	RegistryWrapper subkey;
 	for (DWORD i = 0; i < m_size; ++i)
 	{
@@ -106,6 +106,7 @@ WCHAR* UninstallList::ScanForMatch(LPCWSTR match)
 				delete [] buffer;
 			buffer_real_length = value_max_length;
 			buffer = new WCHAR[buffer_real_length];
+			memset(buffer, 0, buffer_real_length * sizeof(WCHAR));
 		}
 		wprintf(L"----%s----\n", m_list[i]);
 		length = buffer_real_length;
@@ -119,8 +120,15 @@ WCHAR* UninstallList::ScanForMatch(LPCWSTR match)
 			wprintf(L"InstallLocation: %s\n", buffer);
 			if (length > 2)
 			{
-				if (0 == _wcsnicmp(buffer, match, MIN(wcslen(buffer), match_length)))
-					found = TRUE;
+				for (DWORD i = 0; i < count; ++i)
+				{
+					wprintf(L"compare %s - %s\n", buffer, match[i]);
+					if (0 == _wcsnicmp(buffer, match[i], MIN(wcslen(buffer), wcslen(match[i]))))
+					{
+						found = TRUE;
+						break;
+					}
+				}
 			}
 		}
 		length = buffer_real_length;
@@ -130,12 +138,26 @@ WCHAR* UninstallList::ScanForMatch(LPCWSTR match)
 			if (FALSE == found && 2 < length && 0 != _wcsnicmp(buffer, L"MsiExec.exe", 11))
 			{
 				WCHAR *tmp = StrDumpW(buffer);
-				PathRemoveArgs(tmp);
-				PathUnquoteSpaces(tmp);
+				if ( ! PathFileExists(tmp))
+				{
+					PathRemoveArgs(tmp);
+					wprintf(L"%s\n", tmp);
+					PathUnquoteSpaces(tmp);
+					wprintf(L"%s\n", tmp);
+				}
 				PathRemoveFileSpec(tmp);
+				wprintf(L"%s\n", tmp);
 				DWORD tmp_length = wcslen(tmp);
-				if (0 < tmp_length && 0 == _wcsnicmp(tmp, match, MIN(tmp_length, match_length)))
-					found = TRUE;
+				if (0 < tmp_length)
+					for (DWORD i = 0; i < count; ++i)
+					{
+						wprintf(L"compare %s - %s\n", tmp, match[i]);
+						if (0 == _wcsnicmp(tmp, match[i], MIN(wcslen(buffer), wcslen(match[i]))))
+						{
+							found = TRUE;
+							break;
+						}
+					}
 				delete [] tmp;
 			}
 			if (found)

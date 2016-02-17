@@ -63,14 +63,14 @@ proceed_wine()
 	local tmp=$(grep 'Exec=' "$DESKTOP_FILE")
 	local prefix=${tmp#Exec=env WINEPREFIX=\"}
 	prefix=${prefix%%\" *}
-	echo $prefix
+	echo "wine prefix:     $prefix"
 	local wine_cmd=${tmp#Exec=env WINEPREFIX=\"*\" }
 	wine_cmd=${wine_cmd%% *}
-	echo $wine_cmd
+	echo "wine command:    $wine_cmd"
 	local link_file=${tmp#*/dosdevices/}
 	link_file=$(echo -e $link_file)
 	link_file=${link_file//\\ / }
-	echo $link_file
+	echo "shell link file: $link_file"
 
 	if [ ! -d "$prefix" ]; then
 		echo "invalid wine prefix."

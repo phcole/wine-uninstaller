@@ -6,7 +6,7 @@ EXTRA_FLAGS=-m32
 all: app-uninstaller
 	
 app-uninstaller: shelllinkwrapper.cpp registrywrapper.cpp uninstalllist.cpp main.cpp
-	$(EXE_COMPILER) $? $(EXTRA_FLAGS) -static -mwindows -municode -lole32 -luuid -lstdc++ -lshlwapi -o$(EXE_NAME)
+	$(EXE_COMPILER) $? $(EXTRA_FLAGS) -static -mwindows -municode -lole32 -luuid -lstdc++ -lshlwapi -g -O2 -o$(EXE_NAME)
 
 .PHONY: clean install uninstall
 

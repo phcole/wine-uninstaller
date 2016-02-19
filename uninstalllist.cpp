@@ -36,9 +36,22 @@ WCHAR* StrDumpW(LPCWSTR str, DWORD length = 0)
 	return ret;
 }
 
-UninstallList::UninstallList()
+inline BOOL StrCompareArrayW(WCHAR *str, WCHAR **array, DWORD count)
 {
-	GetAppList();
+	for (DWORD i = 0; i < count; ++i)
+	{
+		if (0 == _wcsnicmp(str, array[i], MIN(wcslen(str), wcslen(array[i]))))
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+UninstallList::UninstallList()
+		: m_list(NULL)
+		, m_size(0)
+{
 }
 
 UninstallList::~UninstallList()
@@ -46,12 +59,12 @@ UninstallList::~UninstallList()
 	FreeAppList();
 }
 
-VOID UninstallList::GetAppList()
+VOID UninstallList::GetAppList(HKEY hkey)
 {
 	WCHAR* buffer;
 	DWORD i = 0, max_length, length;
 	
-	if ( ! m_reg.Open(HKLM, REG_UNINSTALL_ROOT_KEY, TRUE, FALSE))
+	if ( ! m_reg.Open(hkey, REG_UNINSTALL_ROOT_KEY, TRUE, FALSE))
 		return;
 	if ( ! m_reg.Info(&m_size, &max_length, NULL, NULL, NULL))
 		return;
@@ -81,12 +94,13 @@ VOID UninstallList::FreeAppList()
 	m_size = 0;
 }
 
-WCHAR* UninstallList::MatchUninstallerByPath(WCHAR** match, DWORD count)
+WCHAR* UninstallList::MatchUninstallerByPath(HKEY root_key, WCHAR** match, DWORD count)
 {
 	BOOL found = FALSE;
 	WCHAR *ret_val = NULL, *buffer;
 	DWORD value_max_length, buffer_real_length = 0, length;
 	RegistryWrapper subkey;
+	GetAppList(root_key);
 	for (DWORD i = 0; i < m_size; ++i)
 	{
 		if ( ! subkey.Open(m_reg.GetHandle(), m_list[i], FALSE, TRUE))
@@ -118,18 +132,8 @@ WCHAR* UninstallList::MatchUninstallerByPath(WCHAR** match, DWORD count)
 		if (subkey.Query(L"InstallLocation", NULL, (LPBYTE)buffer, &length))
 		{
 			wprintf(L"InstallLocation: %s\n", buffer);
-			if (length > 2)
-			{
-				for (DWORD i = 0; i < count; ++i)
-				{
-					wprintf(L"compare %s - %s\n", buffer, match[i]);
-					if (0 == _wcsnicmp(buffer, match[i], MIN(wcslen(buffer), wcslen(match[i]))))
-					{
-						found = TRUE;
-						break;
-					}
-				}
-			}
+			if (length > 2 && StrCompareArrayW(buffer, match, count))
+				found = TRUE;
 		}
 		length = buffer_real_length;
 		if (subkey.Query(L"UninstallString", NULL, (LPBYTE)buffer, &length))
@@ -148,16 +152,8 @@ WCHAR* UninstallList::MatchUninstallerByPath(WCHAR** match, DWORD count)
 				PathRemoveFileSpec(tmp);
 				wprintf(L"%s\n", tmp);
 				DWORD tmp_length = wcslen(tmp);
-				if (0 < tmp_length)
-					for (DWORD i = 0; i < count; ++i)
-					{
-						wprintf(L"compare %s - %s\n", tmp, match[i]);
-						if (0 == _wcsnicmp(tmp, match[i], MIN(wcslen(tmp), wcslen(match[i]))))
-						{
-							found = TRUE;
-							break;
-						}
-					}
+				if (0 < tmp_length && StrCompareArrayW(tmp, match, count))
+					found = TRUE;
 				delete [] tmp;
 			}
 			if (found)
@@ -169,5 +165,14 @@ WCHAR* UninstallList::MatchUninstallerByPath(WCHAR** match, DWORD count)
 	}
 	if (buffer)
 		delete [] buffer;
+	FreeAppList();
 	return ret_val;
+}
+
+WCHAR* UninstallList::MatchUninstallerByPath(WCHAR** match, DWORD count)
+{
+	WCHAR* ret = MatchUninstallerByPath(HKLM, match, count);
+	if (NULL == ret)
+		ret = MatchUninstallerByPath(HKCU, match, count);
+	return ret;
 }

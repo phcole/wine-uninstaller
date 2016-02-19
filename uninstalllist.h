@@ -14,12 +14,14 @@ private:
 	DWORD m_size;
 	RegistryWrapper m_reg;
 
-	VOID GetAppList();
-	VOID FreeAppList();
+	VOID GetAppList(HKEY hkey);
+	VOID FreeAppList(void);
+
+	WCHAR* MatchUninstallerByPath(HKEY root_key, WCHAR** match, DWORD count);
 
 public:
-	UninstallList();
-	~UninstallList();
+	UninstallList(void);
+	~UninstallList(void);
 
 	WCHAR* MatchUninstallerByPath(WCHAR** match, DWORD count);
 };

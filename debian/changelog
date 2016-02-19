@@ -1,0 +1,6 @@
+deepin-wine-uninstaller (0.1deepin1) unstable; urgency=low
+
+  * build deb package.
+
+ -- Hao Peng <penghao@linuxdeepin.com>  Fri, 19 Feb 2016 13:52:53 +0800
+ 

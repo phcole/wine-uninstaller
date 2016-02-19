@@ -1,0 +1,11 @@
+Source: deepin-wine-uninstaller
+Section: non-free/otherosfs
+Priority: optional
+Maintainer: Hao Peng
+Build-Depends: debhelper (>= 3.0), fakeroot
+Standards-Version: 3.7.3.0
+
+Package: deepin-wine-uninstaller
+Architecture: i386
+Multi-Arch: foreign
+Description: Deepin Wine Uninstaller Tool

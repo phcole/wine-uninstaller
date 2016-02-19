@@ -1,0 +1,2 @@
+@CURRENT_PATH@/uninstall.sh /opt/deepinwine/tools/
+@CURRENT_PATH@/app-uninstaller.exe /opt/deepinwine/tools/

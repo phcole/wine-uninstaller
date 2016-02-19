@@ -40,7 +40,6 @@ int WINAPI wWinMain(
     int nArgs;
     DWORD scan_path_count = 0;
 
-    MessageBoxW(NULL, GetCommandLineW(), L"uninstaller", MB_OK);
 
     szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
     if (nArgs <= 1)
@@ -52,7 +51,6 @@ int WINAPI wWinMain(
     LocalFree(szArglist);
     if (L'\"' == link_file[0])
         PathUnquoteSpaces(link_file);
-    MessageBoxW(NULL, link_file, L"uninstaller", MB_OK);
 
     if ( ! PathFileExists(link_file))
     {
@@ -95,7 +93,6 @@ int WINAPI wWinMain(
     }
     delete [] scan_path;
 
-    MessageBoxW(NULL, L"end", L"uninstaller", MB_OK);
     if (PathFileExists(link_file))
         return 1;
     else

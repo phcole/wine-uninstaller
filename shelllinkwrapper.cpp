@@ -75,7 +75,7 @@ BOOL ShelllinkWrapper::GetCmd(LPWSTR szPath, DWORD pathSize, LPWSTR szArgs, DWOR
         WCHAR* szCmdline;
         DWORD cmdSize;
 
-        wprintf(L"MSI - %s\n", dar->szwDarwinID);
+        wprintf(L"APP: MSI - %s\n", dar->szwDarwinID);
 
         cmdSize=0;
         hr = m_CommandLineFromMsiDescriptor( dar->szwDarwinID, NULL, &cmdSize );

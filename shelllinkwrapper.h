@@ -18,13 +18,12 @@ private:
     F_CommandLineFromMsiDescriptor m_CommandLineFromMsiDescriptor;
 
 public:
-    ShelllinkWrapper();
-    ShelllinkWrapper(LPCWSTR linkfile);
-    ~ShelllinkWrapper();
+    ShelllinkWrapper(void);
+    ~ShelllinkWrapper(void);
 
     BOOL Load(LPCWSTR linkfile);
     BOOL Save(LPCWSTR linkfile);
-    VOID Release();
+    VOID Release(void);
     BOOL GetCmd(LPWSTR szPath, DWORD pathSize, LPWSTR szArgs, DWORD argsSize);
     BOOL GetWorkDir(LPWSTR szPath, DWORD pathSize);
 };

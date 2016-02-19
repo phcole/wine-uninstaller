@@ -5,7 +5,7 @@
 #include "shelllinkwrapper.h"
 #include <stdio.h>
 
-ShelllinkWrapper::ShelllinkWrapper(LPCWSTR linkfile = NULL)
+ShelllinkWrapper::ShelllinkWrapper()
         : m_sl(NULL)
         , m_pf(NULL)
         , m_hm(NULL)
@@ -15,8 +15,6 @@ ShelllinkWrapper::ShelllinkWrapper(LPCWSTR linkfile = NULL)
     m_hm = LoadLibraryW(L"advapi32.dll");
     if (m_hm != NULL)
         m_CommandLineFromMsiDescriptor = (F_CommandLineFromMsiDescriptor)GetProcAddress(m_hm, "CommandLineFromMsiDescriptor");
-    if (linkfile)
-        Load(linkfile);
 }
 
 ShelllinkWrapper::~ShelllinkWrapper()
@@ -32,9 +30,7 @@ BOOL ShelllinkWrapper::Load(LPCWSTR linkfile)
     Release();
     HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**)&m_sl);
     m_sl->QueryInterface(IID_IPersistFile, (void**)&m_pf);
-    m_pf->Load(linkfile, STGM_READ);
-
-    return TRUE;
+    return SUCCEEDED(m_pf->Load(linkfile, STGM_READ));
 }
 
 BOOL ShelllinkWrapper::Save(LPCWSTR linkfile)

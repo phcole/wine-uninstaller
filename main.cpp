@@ -50,8 +50,14 @@ int WINAPI wWinMain(
     }
     wprintf(L"Args: %s %d\n", szArglist[1], PathFileExists(szArglist[1]));
 
-    ShelllinkWrapper shllnk(szArglist[1]);
+    ShelllinkWrapper shllnk;
     UninstallList unist;
+
+    if ( ! shllnk.Load(szArglist[1]))
+    {
+        wprintf(L"Error when loading linkfile.[%d]\n", GetLastError());
+        return 0;
+    }
 
     scan_path = new WCHAR*[2];
     if (shllnk.GetWorkDir(cmd, MAX_PATH))

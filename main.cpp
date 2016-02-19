@@ -68,12 +68,12 @@ int WINAPI wWinMain(
     }
 
     scan_path = new WCHAR*[2];
-    if (shllnk.GetWorkDir(cmd, MAX_PATH))
+    if (shllnk.GetWorkDir(cmd, MAX_PATH) && 0 != cmd[0])
     {
         scan_path[scan_path_count++] = StrDumpW(cmd, 0);
         wprintf(L"APP: Get path: %s\n", cmd);
     }
-    if (shllnk.GetCmd(cmd, MAX_PATH, arg, INFOTIPSIZE) && PathRemoveFileSpec(cmd))
+    if (shllnk.GetCmd(cmd, MAX_PATH, arg, INFOTIPSIZE) && 0 != cmd[0] && PathRemoveFileSpec(cmd))
     {
         scan_path[scan_path_count++] = StrDumpW(cmd, 0);
         wprintf(L"APP: Get path: %s\n", cmd);

@@ -35,25 +35,28 @@ proceed_cxoffice()
 	local link_file=${tmp#*--start \"}
 	link_file=${link_file%%\" *}
 
-	tmp=${link_file/C:/"$HOME/.cxoffice/$Bottle/drive_c"}
-	if [ ! -f "$tmp" ]; then
+	local link_file_fulll=${link_file/C:/"$HOME/.cxoffice/$Bottle/drive_c"}
+	if [ ! -f "$link_file_fulll" ]; then
 		echo "SH: link file missing."
 		return
 	fi
+	echo $link_file_fulll
 
 	tmp=$(grep '\"Updater\" = ' "$HOME/.cxoffice/$Bottle/cxbottle.conf")
 	tmp=${tmp#*\"Updater\" = }
 	if [ $tmp != '""' ]; then
-		echo "SH: we can't modify a public bottle."
+		echo "SH: we shouldn't modify a public bottle."
 		return
 	fi
-	echo "SH: $tmp"
 
 	echo "SH: cxoffice bottle: \"$Bottle\""
 	echo "SH: shell link file: \"$link_file\""
 
 	/opt/cxoffice/bin/wine --bottle="$Bottle" --verbose --wait-children -- "$BASE_DIR/$UNINSTALLER_EXE" "$link_file"
-	echo "SH: proceed end"
+
+ 	if [ ! -f "$link_file_fulll" ]; then
+ 		/opt/cxoffice/bin/cxmenu --bottle="$Bottle" --mode='install' --sync --verbose --removeall --install
+ 	fi
 }
 
 detect_wine()
@@ -85,12 +88,39 @@ proceed_wine()
 		return
 	fi
 
+	local link_file_fulll="$prefix/dosdevices/$link_file"
+	if [ ! -f "$link_file_fulll" ]; then
+		echo "SH: link file missing."
+		rm $DESKTOP_FILE
+		return
+	fi
+
 	echo "SH: Prefix:    $prefix"
 	echo "SH: wine cmd:  $wine_cmd"
 	echo "SH: link file: $link_file"
 
 	env WINEPREFIX="$prefix" $wine_cmd "$BASE_DIR/$UNINSTALLER_EXE" "$link_file"
-	echo "SH: proceed end"
+
+	echo "uninstall done."
+	if [ ! -f "$link_file_fulll" ]; then
+		echo "remove link $link_file_fulll"
+		rm -v $DESKTOP_FILE
+		echo "done."
+	fi
+}
+
+proceed_desktop_file()
+{
+	detect_cxoffice
+	if [ $? -eq 0 ]; then
+		proceed_cxoffice
+		return
+	fi
+	detect_wine
+	if [ $? -eq 0 ]; then
+		proceed_wine
+		return
+	fi
 }
 
 DESKTOP_FILE=$1
@@ -106,14 +136,10 @@ fi
 
 echo "SH: $DESKTOP_FILE"
 
-detect_cxoffice
-if [ $? -eq 0 ]; then
-	proceed_cxoffice
+proceed_desktop_file
+
+if [ -f $DESKTOP_FILE ]; then
+	exit 1
+else
 	exit 0
 fi
-detect_wine
-if [ $? -eq 0 ]; then
-	proceed_wine
-	exit 0
-fi
-exit 1

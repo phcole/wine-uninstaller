@@ -6,7 +6,19 @@ DEB_PKG_NAME=deepin-wine-uninstaller
 
 all: app-uninstaller
 	
-app-uninstaller: shelllinkwrapper.cpp registrywrapper.cpp uninstalllist.cpp main.cpp
+shelllinkwrapper.o: shelllinkwrapper.cpp
+	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) -mwindows -municode -g -O2
+
+registrywrapper.o: registrywrapper.cpp
+	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) -mwindows -municode -g -O2
+
+uninstalllist.o: uninstalllist.cpp
+	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) -mwindows -municode -g -O2
+
+main.o: main.cpp
+	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) -mwindows -municode -g -O2
+
+app-uninstaller: shelllinkwrapper.o registrywrapper.o uninstalllist.o main.o
 	$(EXE_COMPILER) $? $(EXTRA_FLAGS) -static -mwindows -municode -lole32 -luuid -lstdc++ -lshlwapi -g -O2 -o$(EXE_NAME)
 
 .PHONY: clean install uninstall builddeb strip-bin

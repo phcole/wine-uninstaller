@@ -24,7 +24,7 @@ app-uninstaller: shelllinkwrapper.o registrywrapper.o uninstalllist.o main.o
 .PHONY: clean install uninstall builddeb strip-bin
 
 clean:
-	rm -rfv $(EXE_NAME)
+	rm -rfv $(EXE_NAME) *.o
 
 strip-bin:
 	strip -s $(EXE_NAME)

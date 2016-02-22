@@ -15,25 +15,62 @@
 #include <tchar.h>
 #include <stdio.h>
 #include <shlwapi.h>
+#include <tlhelp32.h>
 #include "shelllinkwrapper.h"
 #include "uninstalllist.h"
 
+HANDLE FindSubApp(DWORD pid)
+{
+    PROCESSENTRY32 pe32;
+    HANDLE ret = NULL, process_snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (INVALID_HANDLE_VALUE == process_snap)
+    {
+        wprintf(L"APP: CreateToolhelp32Snapshot error[%d]\n", GetLastError());
+        return NULL;
+    }
+    BOOL more = Process32First(process_snap, &pe32);
+    while (more)
+    {
+        if (pe32.th32ParentProcessID == pid)
+        {
+            ret = OpenProcess(SYNCHRONIZE, FALSE, pe32.th32ProcessID);
+            break;
+        }
+        more = Process32Next(process_snap, &pe32);
+    }
+    CloseHandle(process_snap);
+    return ret;
+}
+
 BOOL RunApp(LPCWSTR cmd, BOOL wait = FALSE)
 {
+    HANDLE h;
     STARTUPINFO si = {0};
     PROCESS_INFORMATION pi = {0};
     WCHAR szcmd[MAX_PATH] = {0};
     si.cb = sizeof(si);
     wcscpy(szcmd, cmd);
-    if ( ! CreateProcess(NULL, szcmd, NULL, NULL, FALSE, 0, NULL, NULL, &si , &pi))
+    if ( ! CreateProcess(NULL, szcmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
         return FALSE;
-
-    if (wait)
-        WaitForSingleObject(pi.hProcess,INFINITE);
-
     CloseHandle(pi.hThread);
+    if (wait)
+    {
+        DWORD count = 0;
+        WaitForSingleObject(pi.hProcess, INFINITE);
+        while (count < 10)
+        {
+            h = FindSubApp(pi.dwProcessId);
+            if (h == NULL)
+            {
+                ++count;
+                Sleep(100);
+                continue;
+            }
+            WaitForSingleObject(h, INFINITE);
+            CloseHandle(h);
+        }
+    }
     CloseHandle(pi.hProcess);
-
     return TRUE;
 }
 

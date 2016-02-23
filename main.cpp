@@ -25,7 +25,7 @@ HANDLE FindSubApp(DWORD pid)
     HANDLE ret = NULL, process_snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (INVALID_HANDLE_VALUE == process_snap)
     {
-        wprintf(L"APP: CreateToolhelp32Snapshot error[%d]\n", GetLastError());
+        fwprintf(stderr, L"APP: CreateToolhelp32Snapshot error[%d]\n", GetLastError());
         return NULL;
     }
     pe32.dwSize = sizeof(pe32);
@@ -87,11 +87,10 @@ int WINAPI wWinMain(
     int nArgs;
     DWORD scan_path_count = 0;
 
-
     szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
     if (nArgs <= 1)
     {
-        wprintf(L"APP: no param given.\n");
+        fwprintf(stderr, L"APP: no param given.\n");
         return 1;
     }
     link_file = StrDumpW(szArglist[1], 0);
@@ -101,7 +100,7 @@ int WINAPI wWinMain(
 
     if ( ! PathFileExists(link_file))
     {
-        wprintf(L"APP: Link file do not exists.\n");
+        fwprintf(stderr, L"APP: Link file do not exists.\n");
         return 1;
     }
 
@@ -110,7 +109,7 @@ int WINAPI wWinMain(
 
     if ( ! shllnk.Load(link_file))
     {
-        wprintf(L"APP: Error when loading link file.[%d]\n", GetLastError());
+        fwprintf(stderr, L"APP: Error when loading link file.[%d]\n", GetLastError());
         return 1;
     }
 
@@ -118,24 +117,24 @@ int WINAPI wWinMain(
     if (shllnk.GetWorkDir(cmd, MAX_PATH) && 0 != cmd[0])
     {
         scan_path[scan_path_count++] = StrDumpW(cmd, 0);
-        wprintf(L"APP: Get path: %s\n", cmd);
+        fwprintf(stderr, L"APP: Get path: %s\n", cmd);
     }
     if (shllnk.GetCmd(cmd, MAX_PATH, arg, INFOTIPSIZE) && 0 != cmd[0] && PathRemoveFileSpec(cmd))
     {
         scan_path[scan_path_count++] = StrDumpW(cmd, 0);
-        wprintf(L"APP: Get path: %s\n", cmd);
+        fwprintf(stderr, L"APP: Get path: %s\n", cmd);
     }
     if (scan_path_count > 0)
         unins_cmd = unist.MatchUninstallerByPath(scan_path, scan_path_count);
     if (unins_cmd)
     {
-        wprintf(L"APP: FOUND: %s\n", unins_cmd);
+        fwprintf(stderr, L"APP: FOUND: %s\n", unins_cmd);
         RunApp(unins_cmd, TRUE);
         delete [] unins_cmd;
     }
     else
     {
-        wprintf(L"APP: ERROR: %d\n", GetLastError());
+        fwprintf(stderr, L"APP: ERROR: %d\n", GetLastError());
         RunApp(L"uninstaller.exe", TRUE);
     }
     delete [] scan_path;

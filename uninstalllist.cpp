@@ -49,7 +49,7 @@ inline BOOL StrCompareArrayW(WCHAR *str, WCHAR **array, DWORD count)
 {
 	for (DWORD i = 0; i < count; ++i)
 	{
-		wprintf(L"APP: compare %s - %s\n", str, array[i]);
+		fwprintf(stderr, L"APP: compare %s - %s\n", str, array[i]);
 		if (0 == _wcsnicmp(str, array[i], MIN(wcslen(str), wcslen(array[i]))))
 		{
 			return TRUE;
@@ -115,15 +115,15 @@ WCHAR* UninstallList::MatchUninstallerByPath(HKEY root_key, WCHAR** match, DWORD
 	{
 		if ( ! subkey.Open(m_reg.GetHandle(), m_list[i], FALSE, TRUE))
 		{
-			wprintf(L"APP: open error [%s]%d\n", m_list[i], GetLastError());
+			fwprintf(stderr, L"APP: open error [%s]%d\n", m_list[i], GetLastError());
 			continue;
 		}
 		if ( ! subkey.Info(NULL, NULL, NULL, NULL, &value_max_length))
 		{
-			wprintf(L"APP: Info error [%s]%d\n", m_list[i], GetLastError());
+			fwprintf(stderr, L"APP: Info error [%s]%d\n", m_list[i], GetLastError());
 			continue;
 		}
-		wprintf(L"APP: value_max_length %d\n", value_max_length);
+		fwprintf(stderr, L"APP: value_max_length %d\n", value_max_length);
 		if (value_max_length > buffer_real_length)
 		{
 			if (buffer_real_length)
@@ -132,35 +132,35 @@ WCHAR* UninstallList::MatchUninstallerByPath(HKEY root_key, WCHAR** match, DWORD
 			buffer = new WCHAR[buffer_real_length];
 			memset(buffer, 0, buffer_real_length * sizeof(WCHAR));
 		}
-		wprintf(L"APP: ----%s----\n", m_list[i]);
+		fwprintf(stderr, L"APP: ----%s----\n", m_list[i]);
 		length = buffer_real_length;
 		if (subkey.Query(L"DisplayName", NULL, (LPBYTE)buffer, &length))
 		{
-			wprintf(L"APP: DisplayName: %s\n", buffer);
+			fwprintf(stderr, L"APP: DisplayName: %s\n", buffer);
 		}
 		length = buffer_real_length;
 		if (subkey.Query(L"InstallLocation", NULL, (LPBYTE)buffer, &length))
 		{
-			wprintf(L"APP: InstallLocation: %s\n", buffer);
+			fwprintf(stderr, L"APP: InstallLocation: %s\n", buffer);
 			if (length > 2 && StrCompareArrayW(buffer, match, count))
 				found = TRUE;
 		}
 		length = buffer_real_length;
 		if (subkey.Query(L"UninstallString", NULL, (LPBYTE)buffer, &length))
 		{
-			wprintf(L"APP: UninstallString: %s\n", buffer, length, wcslen(buffer));
+			fwprintf(stderr, L"APP: UninstallString: %s\n", buffer, length, wcslen(buffer));
 			if (FALSE == found && 2 < length && 0 != _wcsnicmp(buffer, L"MsiExec.exe", 11))
 			{
 				WCHAR *tmp = StrDumpW(buffer);
 				if ( ! PathFileExists(tmp))
 				{
 					PathRemoveArgs(tmp);
-					wprintf(L"APP: %s\n", tmp);
+					fwprintf(stderr, L"APP: %s\n", tmp);
 					PathUnquoteSpaces(tmp);
-					wprintf(L"APP: %s\n", tmp);
+					fwprintf(stderr, L"APP: %s\n", tmp);
 				}
 				PathRemoveFileSpec(tmp);
-				wprintf(L"APP: %s\n", tmp);
+				fwprintf(stderr, L"APP: %s\n", tmp);
 				DWORD tmp_length = wcslen(tmp);
 				if (0 < tmp_length && StrCompareArrayW(tmp, match, count))
 					found = TRUE;

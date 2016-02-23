@@ -21,13 +21,14 @@
 
 HANDLE FindSubApp(DWORD pid)
 {
-    PROCESSENTRY32 pe32;
+    PROCESSENTRY32 pe32 = {0};
     HANDLE ret = NULL, process_snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (INVALID_HANDLE_VALUE == process_snap)
     {
         wprintf(L"APP: CreateToolhelp32Snapshot error[%d]\n", GetLastError());
         return NULL;
     }
+    pe32.dwSize = sizeof(pe32);
     BOOL more = Process32First(process_snap, &pe32);
     while (more)
     {

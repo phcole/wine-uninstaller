@@ -36,6 +36,7 @@ public:
 	BOOL Info(LPDWORD subkey_count, LPDWORD subkey_max_length, LPDWORD value_count, LPDWORD value_name_max_length,
 			LPDWORD value_max_length);
 	DWORD Query(LPCTSTR name, LPDWORD type, LPBYTE value, LPDWORD length);
+	BOOL IsValueExist(LPCTSTR valuename);
 
 	VOID EnumReset(void);
 	BOOL EnumKey(LPTSTR name, LPDWORD length);

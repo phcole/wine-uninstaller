@@ -59,6 +59,11 @@ DWORD RegistryWrapper::Query(LPCTSTR name, LPDWORD type, LPBYTE value, LPDWORD l
 	return (ERROR_SUCCESS == RegQueryValueEx(m_key, name, NULL, type, value, length));
 }
 
+BOOL RegistryWrapper::IsValueExist(LPCTSTR valuename)
+{
+	return (ERROR_FILE_NOT_FOUND != RegQueryValueEx(m_key, valuename, NULL, NULL, NULL, NULL));
+}
+
 VOID RegistryWrapper::EnumReset()
 {
 	m_enum_index = 0;

@@ -168,7 +168,16 @@ WCHAR* UninstallList::MatchUninstallerByPath(HKEY root_key, WCHAR** match, DWORD
 			}
 			if (found)
 			{
-				ret_val = StrDumpW(buffer);
+				if (subkey.IsValueExist(L"QuietUninstallString"))
+				{
+					WCHAR *quiet = new WCHAR[buffer_real_length];
+					length = buffer_real_length;
+					if (subkey.Query(L"QuietUninstallString", NULL, (LPBYTE)quiet, &length))
+						ret_val = StrDumpW(quiet);
+					delete [] quiet;
+				}
+				else
+					ret_val = StrDumpW(buffer);
 				break;
 			}
 		}

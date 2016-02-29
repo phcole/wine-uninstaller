@@ -16,19 +16,19 @@ INTERM=build/
 all: makedir $(EXE_NAME)
 	
 $(INTERM)shelllinkwrapper.o: shelllinkwrapper.cpp
-	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
+	$(EXE_COMPILER) -c $^ $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
 
 $(INTERM)registrywrapper.o: registrywrapper.cpp
-	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
+	$(EXE_COMPILER) -c $^ $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
 
 $(INTERM)uninstalllist.o: uninstalllist.cpp
-	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
+	$(EXE_COMPILER) -c $^ $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
 
 $(INTERM)main.o: main.cpp
-	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
+	$(EXE_COMPILER) -c $^ $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
 
 $(EXE_NAME): $(INTERM)shelllinkwrapper.o $(INTERM)registrywrapper.o $(INTERM)uninstalllist.o $(INTERM)main.o
-	$(EXE_COMPILER) $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -static -lole32 -luuid -lstdc++ -lshlwapi -o$@
+	$(EXE_COMPILER) $^ $(EXTRA_FLAGS) $(COMMON_FLAGS) -static -lole32 -luuid -lstdc++ -lshlwapi -o$@
 
 .PHONY: makedir clean install uninstall builddeb strip-bin
 

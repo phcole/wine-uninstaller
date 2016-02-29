@@ -9,25 +9,26 @@ EXE_COMPILER=i686-w64-mingw32-gcc
 SHELL_NAME=uninstall.sh
 EXE_NAME=app-uninstaller.exe
 EXTRA_FLAGS=-m32
+COMMON_FLAGS=-mwindows -municode -g -O2
 DEB_PKG_NAME=deepin-wine-uninstaller
 INTERM=build/
 
-all: makedir app-uninstaller
+all: makedir $(EXE_NAME)
 	
 $(INTERM)shelllinkwrapper.o: shelllinkwrapper.cpp
-	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) -mwindows -municode -g -O2 -o$(INTERM)shelllinkwrapper.o
+	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
 
 $(INTERM)registrywrapper.o: registrywrapper.cpp
-	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) -mwindows -municode -g -O2 -o$(INTERM)registrywrapper.o
+	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
 
 $(INTERM)uninstalllist.o: uninstalllist.cpp
-	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) -mwindows -municode -g -O2 -o$(INTERM)uninstalllist.o
+	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
 
 $(INTERM)main.o: main.cpp
-	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) -mwindows -municode -g -O2 -o$(INTERM)main.o
+	$(EXE_COMPILER) -c $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -o$@
 
-app-uninstaller: $(INTERM)shelllinkwrapper.o $(INTERM)registrywrapper.o $(INTERM)uninstalllist.o $(INTERM)main.o
-	$(EXE_COMPILER) $? $(EXTRA_FLAGS) -static -mwindows -municode -lole32 -luuid -lstdc++ -lshlwapi -g -O2 -o$(EXE_NAME)
+$(EXE_NAME): $(INTERM)shelllinkwrapper.o $(INTERM)registrywrapper.o $(INTERM)uninstalllist.o $(INTERM)main.o
+	$(EXE_COMPILER) $? $(EXTRA_FLAGS) $(COMMON_FLAGS) -static -lole32 -luuid -lstdc++ -lshlwapi -o$@
 
 .PHONY: makedir clean install uninstall builddeb strip-bin
 

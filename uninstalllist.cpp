@@ -148,7 +148,6 @@ WCHAR* UninstallList::MatchUninstallerByPath(HKEY root_key, WCHAR** match, DWORD
 		length = buffer_real_length;
 		if (subkey.Query(L"UninstallString", NULL, (LPBYTE)buffer, &length))
 		{
-			fwprintf(stderr, L"APP: UninstallString: %s\n", buffer, length, wcslen(buffer));
 			if (FALSE == found && 2 < length && 0 != _wcsnicmp(buffer, L"MsiExec.exe", 11))
 			{
 				WCHAR *tmp = StrDumpW(buffer);
